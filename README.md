@@ -15,24 +15,45 @@ baseball statistics.
 
 ## Baseball Abbreviations Used in this project:-
 AB: At bats
+
 BA: Batting average
+
 BB: Base on balls (walk)
+
 BF: Batters faced
+
 CS: Caught stealing
+
 FO: Foul out
+
 H : Hits
+
 HBP: Hit by pitch
+
 HR: Home Run
+
 IBB: Intentional base on balls
+
 MLB: Major League Baseball
+
 OBP: On base percentage
+
 R: Run scored
+
 RBI: Run batted in
+
 SB: Stolen base
+
 SF: Sacrifice Fly
+
 SLP: Slugging percentage
+
 TB: Total bases
+
 X1B : Singles
+
 X2B : Doubles
+
 X3B : Triples
+
 XBH : Extra Base Hits
