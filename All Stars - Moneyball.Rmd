@@ -1,0 +1,152 @@
+---
+title: "All Stars - Moneyball"
+author: "Devansh Saxena"
+date: "July 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Background
+During the 2001-02 offseason the Oakland A’s team lost three key players to teams with larger revenues.
+
+The goal of this project is to look at player and salary data for those years to find players of the same calibre (statistically) who have been under valued by the market and thus are suitable low salary replacements.
+We’ll be looking at data about teams in Major League Baseball. A couple of important points:
+
+-> Major League Baseball is a professional baseball league, where teams pay players to play baseball.
+
+-> The goal of each team is to win as many games out of a 162 game season as possible.
+
+-> Teams win games by scoring more runs than their adversary.
+
+-> In principle, better players are costlier, so teams that want good players need to spend more money.
+
+-> Teams that spend the most, frequently win the most.
+
+## Introduction
+
+This project is based off the book written by Michael Lewis (later turned into a movie). The central theory of book Moneyball is that (this paragraph is taken from the Book Moneyball) the collective wisdom of baseball insiders over the past century is subjective and often flawed. Statistics such as stolen bases, batted runs, and batting average, typically used to gauge players. The book argues that the Oakland A's front office took advantage of more analytical gauges of player performance to field a team that could better compete against richer competitors in Major League Baseball (MLB). Rigorous statistical analysis had demonstrated that on-base percentage and slugging percentage are better indicators of offensive success and the A's became convinced that these qualities were cheaper to obtain on the open market than more historically valued qualities such as speed and contact. These observations often flew in the face of conventional baseball wisdom and the beliefs of many baseball executives. Because of the team's smaller revenues, Oakland A is forced to find players undervalued by the market and their system for finding value in undervalued players has proven itself thus far. This approach brought the A's to the playoffs in 2002 and 2003. 
+
+In this project we'll work with some data and with the goal of trying to find replacement players for the ones lost at the start of the off-season during the 2001–02 offseason, the team lost three key players to larger market teams: Jason Giambi to the New York Yankees, Johnny Damon to the Boston Red Sox, and Jason Isringhausen to the St. Louis Cardinals.
+
+## Source of DATA
+
+I am using data from Sean Lahaman's Website a very useful source for baseball statistics.
+
+## Reading the data
+I already have Batting.csv and Salaries.csv in my current working directory.
+```{r data}
+batting <- read.csv("Batting.csv")
+sal <- read.csv("Salaries.csv")
+```
+
+## Adding 3 more statistics in the Batting.csv data
+
+1) Batting Average (BA)
+2) On base percentage (OBP)
+3) Slugging percentage (SLP)
+These statistics or we can say columns were not present in the data set but we'll need them to predict our players.
+
+```{r Adding Statistics}
+batting$BA <- batting$H / batting$AB
+tail(batting$BA)
+batting$OBP <- (batting$H + batting$BB + batting$HBP) / (batting$AB + batting$BB + batting$HBP + batting$SF)
+```
+For Calculating Slugging percentage (SLP) first we need to calculate the singles i.e. X1B
+```{r}
+batting$X1B <- batting$H - batting$X2B - batting$X3B - batting$HR
+batting$SLP <- ((1*batting$X1B) + (2*batting$X2B) + (3*batting$X3B) + (4*batting$HR)) / batting$AB
+str(batting)
+```
+ 
+## Merging the two data sets
+Now we'll merge the two data sets i.e. merging Salaries.csv with Batting.csv.
+When we display the summary of batting data we'll see in yearID that it starts from 1871 and goes onn till 2013. But we don't require such old data. Therefore we'll subset it and make it start from 1985.
+
+```{r merging}
+batting <- subset(batting,yearID >= 1985)
+combo <- merge(batting,sal,by = c('playerID','yearID'))
+```
+
+## Analyzing lost players
+We'll need the stats of lost players so that we can find the required replacements.
+
+```{r lost players stats}
+lost_players <- subset(combo,playerID %in% c('giambja01','damonjo01','saenzol01'))
+lost_players
+```
+Here you can see that in 2001 these players were in OAK and in 2002 they changed there teams and went in some anothere team.
+Now, we want the information (stats) just for the year 2001 and also we need only some of the columns to analyze.
+
+```{r}
+lost_players <- lost_players <- subset(lost_players,yearID == 2001)
+lost_players <- lost_players[, c('playerID','H','X1B','X2B','X3B','HR','OBP','SLP','BA','AB')]
+head(lost_players)
+```
+We have the required data of the lost players and now we have to find the replacement players "The Most Under Valued Players"
+
+## The 3 major constraints
+
+In finding the replacement players we had 3 major constraints:-
+
+1) Total combine salary should not exceed 15 million dollars.
+2) Combine number of At Bats (AB) should be greater than or equal to the combine At Bats (AB) of lost players. In this case it'll be >= 1469.
+3) The mean OBP of replacement players should be greater than or equal to the mean OBP of lost players. In this case it'll be >= 0.364
+
+```{r}
+combo <- subset(combo,yearID == 2001)
+str(combo)
+```
+We can see at the top of the above output that there are total 915 observations (obs) i.e. we have total 915 players out of which we have to find our 3 most under valued players who can fullfil our constraints.
+
+```{r plot}
+library(ggplot2)
+ggplot(combo, aes(x = OBP, y = salary)) + geom_point(size=2)
+```
+After looking at the scatter plot we can see that there are tons of points on 0.00 OBP, little at 0.50 OBP and some at 1.00 OBP.
+OBP means the percentage of time a player spends on base. 
+1.00 means 100%
+0.50 means 50%
+0.00 means 0%
+We want average OBP equal to 0.36 and there are lots of options of OBP = 0.36 and also salary of those options are under 10 million dollars. If we have a closer look we can see that even below 8 million dollars we have lots of options.
+
+```{r}
+combo <- subset(combo,salary < 8000000 & OBP > 0)
+str(combo)
+```
+If we go up and see (in the above output) we have only 602 obs left.
+Now, 1469 should be the sum of AB of 3 replacement players.
+Therefore each player should have AB = 1496/3
+i.e. 489.66 AB
+
+```{r}
+combo <- subset(combo,AB >= 450)
+str(combo)
+```
+Now if we go up and see (in the above output) we are left with only 122 obs.
+Now we'll arrange it according to OBP in descending order and we need only 10 obs as the OBP is ordered in descending order.
+```{r}
+library(dplyr)
+options <- head(arrange(combo,desc(OBP)),10)
+```
+Now we need only some selected columns to choose our replacement players.
+```{r}
+options[,c('playerID','AB','salary','OBP')]
+```
+
+Here we'll get couple of players out of which we have to choose our Best Under Valued Players, we can't choose the first one as he is one of the lost player.
+
+## Result
+
+Now if we look at the above output closely we can see that the 2nd, 3rd and 4th player fullfil our requirments completely i.e.
+
+-> salary is something around 10 million dollars.
+
+-> Mean OBP is even greater than the Mean OBP of lost players i.e. 0.429
+
+-> AB is also greater than the AB of lost players i.e. 1773.
+
+## Conclusion
+
+We got our Best Under Valued replacement players and even better than the lost players.
