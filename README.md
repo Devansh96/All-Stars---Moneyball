@@ -1,6 +1,6 @@
-## All-Stars---Moneyball
+# All-Stars---Moneyball
 
-# Basic Overview
+## Basic Overview
 This project is based off the book written by Michael Lewis 
 (later turned into a movie).
 
@@ -13,7 +13,7 @@ Did these analysis using R.
 I am using data from Sean Lahaman's Website a very useful source for 
 baseball statistics. 
 
-# Baseball Abbreviations Used in this project:-
+## Baseball Abbreviations Used in this project:-
 AB: At bats
 BA: Batting average
 BB: Base on balls (walk)
